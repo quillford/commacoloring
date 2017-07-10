@@ -43,6 +43,7 @@ function (Layer, segmentation, morph) {
     this.mode = "superpixel";
     this.polygonPoints = [];
     this.prevAnnotationImg = null;
+    this.brushRadius = 7;
     var annotator = this;
     this.layers.image.load(imageURL, {
       width: options.width,
@@ -147,10 +148,10 @@ function (Layer, segmentation, morph) {
   // Write the brush tool
   Annotator.prototype.brush = function (pos, label) {
     var offsets = [], labels = [];
-    for (var y = -3; y <= 3; y++) {
-      for (var x = -3; x <= 3; x++) {
+    for (var y = -this.brushRadius; y <= this.brushRadius; y++) {
+      for (var x = -this.brushRadius; x <= this.brushRadius; x++) {
         // it is circle bitches
-        if ((x*x + y*y) > 9) continue;
+        if ((x*x + y*y) > this.brushRadius*this.brushRadius) continue;
         var offset = 4 * ((pos[1]+y) * this.layers.visualization.canvas.width + (pos[0]+x));
         offsets.push(offset);
         labels.push(label);
@@ -160,6 +161,10 @@ function (Layer, segmentation, morph) {
     this.layers.visualization.render();
     if (typeof this.onchange === "function")
       this.onchange.call(this);
+  };
+
+  Annotator.prototype.setBrushRadius = function(radius) {
+    this.brushRadius = radius;
   };
 
   // Get unique labels in the current annotation.
@@ -394,6 +399,8 @@ function (Layer, segmentation, morph) {
         annotator = this;
     canvas.oncontextmenu = function() { return false; };
     function updateIfActive(event) {
+      event.preventDefault(); // prevent scrolling on mobile
+
       var offset = annotator._getClickOffset(event),
           superpixelData = annotator.layers.superpixel.imageData.data,
           annotationData = annotator.layers.annotation.imageData.data,
@@ -412,7 +419,7 @@ function (Layer, segmentation, morph) {
           else
             annotator.onrightclick.call(annotator, existingLabel);
         } else {
-          if (annotator.mode === "brush" && event.button === 0) {
+          if (annotator.mode === "brush" && (event.button === 0 || event.touches)) {
             annotator.brush(annotator._getClickPos(event), annotator.currentLabel);
             //annotator._fillPixels([offset], [annotator.currentLabel]);
             //var pos = annotator._getClickPos(event);
@@ -431,7 +438,9 @@ function (Layer, segmentation, morph) {
       }
     }
     canvas.addEventListener('mousemove', updateIfActive);
+    canvas.addEventListener('touchmove', updateIfActive);
     canvas.addEventListener('mouseup', updateIfActive);
+    canvas.addEventListener('touchstart', updateIfActive);
     canvas.addEventListener('mouseleave', function () {
       annotator._updateHighlight(null);
       if (typeof annotator.onmousemove === "function") {
@@ -442,7 +451,14 @@ function (Layer, segmentation, morph) {
       mousestate.down = true;
       mousestate.button = event.button;
     });
+    canvas.addEventListener('touchstart', function (event) {
+      mousestate.down = true;
+      mousestate.button = event.button;
+    });
     window.addEventListener('mouseup', function () {
+      mousestate.down = false;
+    });
+    window.addEventListener('touchend', function () {
       mousestate.down = false;
     });
     //polygon on/off with ctrl-key
@@ -519,7 +535,25 @@ function (Layer, segmentation, morph) {
   };
 
   Annotator.prototype._getClickPos = function (event) {
-    return [event.offsetX, event.offsetY];
+    var position = {};
+
+    if (event.targetTouches) {
+      position.x = event.targetTouches[0].pageX;
+      position.y = event.targetTouches[0].pageY;
+
+      var parent = event.target;
+      while (parent.offsetParent) {
+        position.x -= parent.offsetLeft - parent.scrollLeft;
+        position.y -= parent.offsetTop - parent.scrollTop;
+
+        parent = parent.offsetParent;
+      }
+    } else {
+      position.x = event.offsetX;
+      position.y = event.offsetY;
+    }
+    
+    return [position.x, position.y];
   };
 
   // polygon tool.

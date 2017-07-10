@@ -98,6 +98,14 @@ function(Layer, Annotator, util) {
       }
     });
 
+    $(".img-undo").click(function() {
+      annotator.undo();
+    });
+
+    $(".img-redo").click(function() {
+      annotator.redo();
+    });
+
     return container;
   }
 
@@ -114,6 +122,8 @@ function(Layer, Annotator, util) {
         alphaMinusButton = document.createElement("div"),
         imageButton = document.createElement("div"),
         alphaPlusButton = document.createElement("div");
+        brightnessSlider = document.createElement("input");
+        brushSlider = document.createElement("input");
     zoomOutButton.appendChild(document.createTextNode("-"));
     zoomOutButton.classList.add("edit-image-top-button");
     zoomOutButton.addEventListener("click", function () {
@@ -150,6 +160,7 @@ function(Layer, Annotator, util) {
       boundaryFlash();
     });
     spacer2.className = "edit-image-top-spacer";
+
     alphaMinusButton.className = "edit-image-top-button";
     alphaMinusButton.appendChild(document.createTextNode("-"));
     alphaMinusButton.addEventListener("click", function () {
@@ -170,18 +181,48 @@ function(Layer, Annotator, util) {
     alphaPlusButton.addEventListener("click", function () {
       annotator.lessAlpha();
     });
+
+    brightnessSlider.type = "range";
+    brightnessSlider.min = -20;
+    brightnessSlider.max = 275;
+    brightnessSlider.defaultValue = 144;
+    brightnessSlider.addEventListener("change", function (e) {
+      annotator.setAlpha(e.srcElement.value);
+    });
+
+    brushSlider.type = "range";
+    brushSlider.min = 3;
+    brushSlider.max = 35;
+    brushSlider.defaultValue = annotator.brushRadius;
+    brushSlider.addEventListener("change", function (event) {
+      annotator.setBrushRadius(event.srcElement.value); 
+    });
+    
+    $("#edit-brush-radius-slider").val(annotator.brushRadius);
+    $("#edit-brightnesss-slider").val(annotator.visualizationAlpha);
+
+    $("#edit-brightness-slider").on('change', function() {
+      annotator.setAlpha($("#edit-brightness-slider").val());
+    });
+    $("#edit-brush-radius-slider").on('change', function() {
+      annotator.setBrushRadius($("#edit-brush-radius-slider").val());
+    });
+
     //
     container.className = "edit-image-top-menu";
-    //container.appendChild(zoomOutButton);
-    //container.appendChild(zoomInButton);
-    //container.appendChild(spacer1);
+    // container.appendChild(zoomOutButton);
+    // container.appendChild(zoomInButton);
+    // container.appendChild(spacer1);
     container.appendChild(finerButton);
     container.appendChild(boundaryButton);
     container.appendChild(coarserButton);
-    container.appendChild(spacer2);
-    container.appendChild(alphaMinusButton);
-    container.appendChild(imageButton);
-    container.appendChild(alphaPlusButton);
+    // container.appendChild(spacer2);
+    // container.appendChild(alphaMinusButton);
+    // container.appendChild(imageButton);
+    // container.appendChild(alphaPlusButton);
+    // container.appendChild(brightnessSlider);
+    // container.appendChild(spacer2);
+    // container.appendChild(brushSlider);
     return container;
   }
 

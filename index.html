@@ -18,7 +18,18 @@
 
 <!-- left hand panel -->
 <div class="edit-image-display">
-<div id="lhp"></div>
+
+<div id="lhp">
+  <div style="font-family: monospace; font-size: 1.25rem">brightness <div style="width: 100%"><input type="range" min="-20" max="270" style="margin-bottom: 10px" id="edit-brightness-slider"></div></div>
+
+  <div style="font-family: monospace; font-size: 1.25rem">brush radius <div style="width: 100%"><input type="range" min="3" max="60" id="edit-brush-radius-slider"></div></div>
+
+  <div>
+    <div class="btn-box" style="float: left"><button class="btn img-undo">undo</button></div>
+    <div class="btn-box"><button class="btn img-redo">redo</button></div>
+  </div>
+</div>
+
 <div class="toolchest">
 <img class="tool" id="tool-wand" src="img/wand.png" />
 <img class="tool" id="tool-brush" src="img/brush.png" />
